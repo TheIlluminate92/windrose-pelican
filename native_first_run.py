@@ -21,6 +21,7 @@ SERVER = Path("R5/ServerDescription.json")
 SAVES = Path("R5/Saved/SaveProfiles/Default")
 RUNTIME = SAVES / "RocksDB_v2"
 BACKUPS = SAVES / "RocksDB_v2_Backups/Worlds"
+GAME_LOG = Path("R5/Saved/Logs/R5.log")
 STATE = Path(".windrose-first-run")
 KEY = "ServerDescription_Persistent"
 READY = b"LogGlobalStatus: LoadMap Load map complete /Game/Maps/GYM/Genlandia/GenlandiaMulty"
@@ -88,34 +89,40 @@ def validate_archive(path, world_id, test_crc=False):
 
 
 def console_tail(path):
-    with path.open("rb") as stream:
-        size = os.fstat(stream.fileno()).st_size
-        stream.seek(max(0, size - 4 * 1024 * 1024))
-        return stream.read(4 * 1024 * 1024)
+    try:
+        with path.open("rb") as stream:
+            size = os.fstat(stream.fileno()).st_size
+            stream.seek(max(0, size - 4 * 1024 * 1024))
+            return stream.read(4 * 1024 * 1024)
+    except FileNotFoundError:
+        return b""
 
 
 def wait_for_snapshot(game, console, snapshot):
     deadline = time.monotonic() + 180
+    ready = False
     while game.poll() is None and not interrupted and time.monotonic() < deadline:
-        if READY in console_tail(console):
-            config = json_file(SERVER)[KEY]
-            world_id = config.get("WorldIslandId")
-            if isinstance(world_id, str) and len(world_id) == 32 and all(c in "0123456789abcdefABCDEF" for c in world_id):
-                source = BACKUPS / world_id / f"{world_id}_0.10.0_Latest.zip"
-                if source.is_file() and not source.is_symlink() and source.stat().st_size <= 2 * 1024**3:
-                    target = snapshot / source.name
-                    try:
-                        shutil.copyfile(source, target)
-                        validate_archive(target, world_id, test_crc=True)
-                    except (BadZipFile, FileNotFoundError):
-                        target.unlink(missing_ok=True)
-                    else:
-                        with target.open("rb") as data:
-                            os.fsync(data.fileno())
-                        sync_directory(snapshot)
-                        return world_id, source, target
+        ready = ready or READY in console_tail(console) or READY in console_tail(GAME_LOG)
+        candidates = list(BACKUPS.glob("*/*_0.10.0_Latest.zip"))
+        if ready and len(candidates) == 1:
+            source = candidates[0]
+            world_id = source.parent.name
+            if (len(world_id) == 32 and all(c in "0123456789abcdefABCDEF" for c in world_id)
+                    and source.name == f"{world_id}_0.10.0_Latest.zip"
+                    and source.is_file() and not source.is_symlink() and source.stat().st_size <= 2 * 1024**3):
+                target = snapshot / source.name
+                try:
+                    shutil.copyfile(source, target)
+                    validate_archive(target, world_id, test_crc=True)
+                except (BadZipFile, FileNotFoundError):
+                    target.unlink(missing_ok=True)
+                else:
+                    with target.open("rb") as data:
+                        os.fsync(data.fileno())
+                    sync_directory(snapshot)
+                    return world_id, source, target
         time.sleep(1)
-    raise ValueError("No verified natural backup arrived during the first launch.")
+    raise ValueError(f"No verified natural backup arrived during the first launch (gameplay={ready}, canonical={len(list(BACKUPS.glob('*/*_0.10.0_Latest.zip')))}).")
 
 
 def checked_move(source, destination):
@@ -211,7 +218,7 @@ def bootstrap(name, preset, config):
     global active
     if not 1 <= len(name) <= 64 or not name.strip() or any(ord(c) < 32 for c in name) or preset not in PRESETS:
         raise ValueError("Set a valid world name and an Easy, Medium or Hard difficulty.")
-    if any(SAVES.glob("*/**/WorldDescription.json")) or RUNTIME.exists() or BACKUPS.exists():
+    if any(SAVES.glob("*/**/WorldDescription.json")) or RUNTIME.exists() or BACKUPS.exists() or GAME_LOG.exists():
         raise ValueError("An existing save directory needs manual review.")
     if config[KEY].get("AutoLoadLatestBackupIfHasBroken") is not True:
         raise ValueError("Enable Recover From Latest Backup for first-world setup.")
@@ -246,6 +253,8 @@ def bootstrap(name, preset, config):
         code != 0 and not (code in (139, -signal.SIGSEGV) and EXIT in console_tail(console))
     ):
         raise ValueError("Unexpected first-launch exit. The verified backup and runtime were preserved.")
+    if json_file(SERVER)[KEY].get("WorldIslandId") != world_id:
+        raise ValueError("The verified first snapshot does not match the selected world after stop.")
     print("Windrose first launch stopped after a validated snapshot.", flush=True)
     expected = cold_restore({"name": name, "preset": preset, "latest": latest}, world_id, archive)
     return reopen(world_id, expected)

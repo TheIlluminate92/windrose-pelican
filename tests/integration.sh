@@ -33,7 +33,7 @@ if [ "${WINDROSE_TEST_FETCH:-0}" = 1 ]; then
       "$image" bash /mnt/install/install.sh
 fi
 sudo chown -R 99:100 "$root"
-docker run --detach --name "$name" --network none --read-only --user 99:100 \
+docker run --detach --tty --name "$name" --network none --read-only --user 99:100 \
   --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,exec,nosuid,size=128m \
   --mount "type=bind,src=$root,dst=/home/container" \
   -e 'WORLD_NAME=CI First World' -e WORLD_PRESET_TYPE=Hard "$image"
