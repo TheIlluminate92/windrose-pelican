@@ -6,13 +6,40 @@ jobs:
   synthetic:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - run: PYTHONPATH=. python3 -m unittest discover -s tests -v
   publisher-image:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - run: ./build.sh
       - run: ./tests/integration.sh
+  registry-runtime:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - run: ./build.sh runtime
+      - name: Verify installer and first-run settings
+        run: ./tests/integration.sh
+        env:
+          WINDROSE_TEST_IMAGE: windrose-pelican-runtime:test
+          WINDROSE_TEST_FETCH: '1'
+      - name: Publish adapter-only image
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          tag=ghcr.io/theilluminate92/windrose-pelican-runtime:sha-$GITHUB_SHA
+          docker tag windrose-pelican-runtime:test "$tag"
+          docker push "$tag"
+          release=ghcr.io/theilluminate92/windrose-pelican-runtime:0.10.0.9-first-run
+          docker tag "$tag" "$release"
+          docker push "$release"

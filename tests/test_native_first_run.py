@@ -82,7 +82,8 @@ class FirstRun(unittest.TestCase):
         self.config = self.root/"R5/ServerDescription.json"
         self.config.write_text(json.dumps({"ServerDescription_Persistent":{
             "WorldIslandId":"", "UseDirectConnection":True, "DirectConnectionServerPort":25562,
-            "IsPasswordProtected":True, "Password":"owner-only", "InviteCode":"original"
+            "IsPasswordProtected":True, "Password":"owner-only", "InviteCode":"original",
+            "AutoLoadLatestBackupIfHasBroken":True,
         }}))
         self.game = self.root/"windrose"
         self.game.write_text(MOCK)
@@ -123,6 +124,15 @@ class FirstRun(unittest.TestCase):
         self.assertNotIn(READY, failed.stdout)
         self.assertTrue((self.state/"previous-runtime").is_dir())
         self.assertFalse((self.state/"complete.json").exists())
+
+    def test_recovery_disabled_stops_before_game_launch(self):
+        config = json.loads(self.config.read_text())
+        config["ServerDescription_Persistent"]["AutoLoadLatestBackupIfHasBroken"] = False
+        self.config.write_text(json.dumps(config))
+        failed = self.run_egg()
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertFalse((self.root/"boots").exists())
+        self.assertFalse((self.state/"pending.json").exists())
 
 
 if __name__ == "__main__":

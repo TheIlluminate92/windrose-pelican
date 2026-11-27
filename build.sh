@@ -9,4 +9,8 @@ if [ ! -f "$archive" ]; then
         -o "$archive"
 fi
 printf '%s  %s\n' "$digest" "$archive" | sha256sum --check
-docker build --platform linux/amd64 --target server --network none -t windrose-pelican:0.10.0.9-first-run .
+case "${1:-local}" in
+    local) docker build --platform linux/amd64 --target server --network none -t windrose-pelican:0.10.0.9-first-run . ;;
+    runtime) docker build --platform linux/amd64 -f Dockerfile.runtime -t windrose-pelican-runtime:test . ;;
+    *) echo 'Usage: build.sh [local|runtime]' >&2; exit 2 ;;
+esac

@@ -61,8 +61,6 @@ def json_file(path):
 def start_signal(signum, _frame):
     global interrupted
     interrupted = True
-    if active is not None and active.poll() is None:
-        active.send_signal(signal.SIGINT)
 
 
 def stop_game(process):
@@ -180,6 +178,8 @@ def reopen(world_id, expected):
     deadline = time.monotonic() + 180
     try:
         for line in startup_lines(active.stdout):
+            if interrupted and confirmed:
+                return stop_game(active)
             if not confirmed and (time.monotonic() >= deadline or interrupted):
                 raise ValueError("Restored world did not verify before startup stopped or timed out.")
             if line is None:
@@ -213,6 +213,8 @@ def bootstrap(name, preset, config):
         raise ValueError("Set a valid world name and an Easy, Medium or Hard difficulty.")
     if any(SAVES.glob("*/**/WorldDescription.json")) or RUNTIME.exists() or BACKUPS.exists():
         raise ValueError("An existing save directory needs manual review.")
+    if config[KEY].get("AutoLoadLatestBackupIfHasBroken") is not True:
+        raise ValueError("Enable Recover From Latest Backup for first-world setup.")
     snapshot = STATE / "snapshot"
     snapshot.mkdir(mode=0o700)
     section = config[KEY]

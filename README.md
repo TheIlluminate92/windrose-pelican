@@ -2,11 +2,17 @@
 
 An unofficial adapter for the publisher's native Linux Windrose dedicated server. No game executable is patched. The local build pulls the pinned publisher image directly. This repository does not mirror the game files or distribute a prebuilt image containing them.
 
-## Build and import
+## Deployment
+
+The registry workflow builds and tests an adapter-only runtime. After it passes and the GHCR package is public, import `egg-windrose-linux-registry.yaml`, create a server and start it from Pelican. During installation, the egg fetches and verifies the publisher's original Linux game layer directly from Docker Hub. The GHCR image contains the adapter and runtime dependencies. The game files live in the server volume.
+
+The registry egg is a candidate until the exact publish run and an anonymous pull have been verified.
+
+## Local build and import
 
 Requires Docker with BuildKit on Linux amd64. Run `./build.sh`, then import `egg-windrose-linux.yaml` in Pelican. The egg uses a cache-only image, so build it on each Wings node that will host this egg. The installer creates the initial server config and save directory. Start via Pelican after installation.
 
-Set a join password and use the primary allocation for Direct IP. Set both **World Name** and **World Difficulty** before the first start, or leave both blank for Windrose's defaults. Changes to these fields on existing worlds have no effect.
+Set a join password and use the primary allocation for Direct IP. Set both **World Name** and **World Difficulty** before the first start, or leave both blank for Windrose's defaults. First-world setup requires **Recover From Latest Backup** enabled. Leave the temporary high port range (49152–65535) out of the server's published allocations. Changes to these fields on existing worlds have no effect.
 
 ## What the adapter changes
 
