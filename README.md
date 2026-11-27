@@ -4,9 +4,9 @@ An unofficial adapter for the publisher's native Linux Windrose dedicated server
 
 ## Deployment
 
-The registry workflow builds and tests an adapter-only runtime. After it passes and the GHCR package is public, import `egg-windrose-linux-registry.yaml`, create a server and start it from Pelican. During installation, the egg fetches and verifies the publisher's original Linux game layer directly from Docker Hub. The GHCR image contains the adapter and runtime dependencies. The game files live in the server volume.
+The registry workflow builds and tests an adapter-only runtime. Import [the registry egg](egg-windrose-linux-registry.yaml), create a server and start it from Pelican. During installation, the egg fetches and verifies the publisher's original Linux game layer directly from Docker Hub. The GHCR image contains the adapter and runtime dependencies. The game files live in the server volume.
 
-The registry egg is a candidate until the exact publish run and an anonymous pull have been verified.
+Both the installer and runtime references are pinned to the [verified public GHCR build](https://github.com/TheIlluminate92/windrose-pelican/actions/runs/45923432866).
 
 ## Local build and import
 
@@ -23,7 +23,7 @@ Set a join password and use the primary allocation for Direct IP. Set both **Wor
 
 ## Verification and known limits
 
-The repository tests exercise first-run orchestration with synthetic processes. The CI workflow also builds from the original publisher image and attempts a real isolated first start. Check the specific Actions run before treating that test as accepted. No live Pelican commissioning or player join is claimed for this version.
+The linked GitHub Actions run verified the publisher installer and first-run settings through two actual engine starts in isolation. A fresh server then installed and started through Pelican using the same public digest. The Panel reported it running, and its world files confirmed the configured name and Hard difficulty after the first-run restore. A player join had yet to be confirmed at that checkpoint.
 
 The publisher build `0.10.0.9.32-22d39a16` can segfault after reaching its shutdown path. The unmodified publisher image reproduced this in an isolated test. Its shell wrapper can mask the crash by returning 0. This adapter preserves the game's exit status. A stop is not a backup, and exit 139 does not establish that recent saves flushed.
 
