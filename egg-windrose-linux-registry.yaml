@@ -6,7 +6,7 @@ author: Pelican Windrose contributors
 uuid: 7f4b2062-1db5-4c7e-aa1a-6a087c7e1557
 description: Windrose publisher Linux. World Name and Difficulty apply together on the first start of a fresh world. Later starts preserve the world. Direct IP uses the primary allocation. A stop can exit 139 on this build.
 docker_images:
-  Windrose Linux via GHCR: ghcr.io/theilluminate92/windrose-pelican-runtime@sha256:99037e1c253b561dea2b0e43e0508224a601cf4729b6eec38e2d0909ea16eeb8
+  Windrose Linux via GHCR: ghcr.io/theilluminate92/windrose-pelican-runtime@sha256:6011d494baf9d8de7e6c7213619b5e28eb16e7c6211a4545f3fee707e2366cc9
 tags: []
 features: []
 file_denylist: []
@@ -33,7 +33,7 @@ scripts:
   installation:
     script: "#!/bin/bash\nset -e\n/opt/windrose-runtime/python/bin/python3.12 -E -B /opt/windrose-first-run/install_publisher.py /mnt/server\nmkdir -p /mnt/server/R5/Saved\nconfig=/mnt/server/R5/ServerDescription.json\nif [ -L \"$config\" ]; then\n    echo 'Windrose server configuration must be a regular file.' >&2\n    exit 1\nfi\nif [ ! -f \"$config\" ]; then\n    umask 077\n    cat > \"$config\" <<'WINDROSE_CONFIG'\n{\n  \"Version\": 1,\n  \"DeploymentId\": \"\",\n  \"ServerDescription_Persistent\": {\n    \"PersistentServerId\": \"\",\n    \"InviteCode\": \"\",\n    \"IsPasswordProtected\": true,\n    \"Password\": \"\",\n    \"ServerName\": \"Windrose\",\n    \"WorldIslandId\": \"\",\n    \"MaxPlayerCount\": 4,\n    \"UserSelectedRegion\": \"\",\n    \"P2pProxyAddress\": \"0.0.0.0\",\n    \"UseDirectConnection\": true,\n    \"DirectConnectionServerAddress\": \"\",\n    \"DirectConnectionServerPort\": 25562,\n    \"DirectConnectionProxyAddress\": \"0.0.0.0\",\n    \"AutoLoadLatestBackupIfHasBroken\": true,\n    \"CanLaunchMultipleServerInstances\": false\n  }\n}\nWINDROSE_CONFIG\nfi\n"
     entrypoint: bash
-    container: ghcr.io/theilluminate92/windrose-pelican-runtime@sha256:99037e1c253b561dea2b0e43e0508224a601cf4729b6eec38e2d0909ea16eeb8
+    container: ghcr.io/theilluminate92/windrose-pelican-runtime@sha256:6011d494baf9d8de7e6c7213619b5e28eb16e7c6211a4545f3fee707e2366cc9
 variables:
 - name: '[SERVER] Max Players'
   description: Maximum simultaneous players allowed. Up to 4 is recommended for best performance; 10 players is supported with adequate hardware (>=16 GB RAM).
