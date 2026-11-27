@@ -23,7 +23,7 @@ Set a join password of up to 31 characters and use the primary allocation for Di
 
 ## Verification and known limits
 
-The linked GitHub Actions run verified the publisher installer and first-run settings through two actual engine starts in isolation. A fresh server then installed and started through Pelican using the same public digest. The Panel reported it running, and its world files confirmed the configured name and Hard difficulty after the first-run restore. The operator then confirmed a player join after the password was shortened to fit the game's limit.
+The linked GitHub Actions run verified the publisher installer and first-run settings through two actual engine starts in isolation. A fresh server installed and started through Pelican from the preceding public build. The current digest adds password-length validation and passed the same isolated installer and first-run tests. The Panel reported it running, and its world files confirmed the configured name and Hard difficulty after the first-run restore. The operator then confirmed a player join after the password was shortened to fit the game's limit.
 
 The publisher build `0.10.0.9.32-22d39a16` can segfault after reaching its shutdown path. The unmodified publisher image reproduced this in an isolated test. Its shell wrapper can mask the crash by returning 0. This adapter preserves the game's exit status. A stop is not a backup, and exit 139 does not establish that recent saves flushed.
 
