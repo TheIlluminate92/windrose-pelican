@@ -12,7 +12,7 @@ Both the installer and runtime references are pinned to the [verified public GHC
 
 Requires Docker with BuildKit on Linux amd64. Run `./build.sh`, then import `egg-windrose-linux.yaml` in Pelican. The egg uses a cache-only image, so build it on each Wings node that will host this egg. The installer creates the initial server config and save directory. Start via Pelican after installation.
 
-Set a join password and use the primary allocation for Direct IP. Set both **World Name** and **World Difficulty** before the first start, or leave both blank for Windrose's defaults. First-world setup requires **Recover From Latest Backup** enabled. Leave the temporary high port range (49152–65535) out of the server's published allocations. Changes to these fields on existing worlds have no effect.
+Set a join password of up to 31 characters and use the primary allocation for Direct IP. Set both **World Name** and **World Difficulty** before the first start, or leave both blank for Windrose's defaults. First-world setup requires **Recover From Latest Backup** enabled. Leave the temporary high port range (49152–65535) out of the server's published allocations. Changes to these fields on existing worlds have no effect.
 
 ## What the adapter changes
 

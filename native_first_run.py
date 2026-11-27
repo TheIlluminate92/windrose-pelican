@@ -239,7 +239,7 @@ def bootstrap(name, preset, config):
     temporary = {
         "DirectConnectionServerPort": temporary_port,
         "IsPasswordProtected": True,
-        "Password": secrets.token_hex(18),
+        "Password": secrets.token_hex(12),
         "InviteCode": secrets.token_hex(12),
     }
     original = {key: section[key] for key in temporary}
@@ -283,6 +283,8 @@ def main():
         name = os.environ.get("WORLD_NAME", "")
         preset = os.environ.get("WORLD_PRESET_TYPE", "")
         config = json_file(SERVER)
+        if len(config[KEY]["Password"]) > 31:
+            raise ValueError("Windrose passwords must be shorter than 32 characters.")
         if (name or preset) and not config[KEY].get("WorldIslandId"):
             return bootstrap(name, preset, config)
     os.execv(GAME, [GAME])

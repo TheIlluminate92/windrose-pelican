@@ -70,7 +70,7 @@ variables:
   - max:64
   sort: 1
 - name: '[SERVER] Server Password'
-  description: Password required to join the server. Only used when Password Protected is set to true.
+  description: Join password, up to 31 characters. Used when Password Protected is set to true.
   env_variable: SERVER_PASSWORD
   default_value: ''
   user_viewable: true
@@ -78,7 +78,7 @@ variables:
   rules:
   - nullable
   - string
-  - max:64
+  - max:31
   sort: 6
 - name: '[NETWORK] Direct Bind Address'
   description: IPv4 address inside the game container. Keep 0.0.0.0 for normal Pelican port forwarding.

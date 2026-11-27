@@ -32,7 +32,7 @@ with Path("boots").open("a") as f:
     f.write("game\n")
 if not server["WorldIslandId"]:
     assert server["DirectConnectionServerPort"] > 49151
-    assert server["Password"] != "owner-only"
+    assert len(server["Password"]) == 24 and server["Password"] != "owner-only"
     def stop(*_):
         print("LogExit: Exiting.", flush=True)
         sys.exit(139 if not os.environ.get("BAD_STOP") else 3)
@@ -136,6 +136,15 @@ class FirstRun(unittest.TestCase):
         self.assertNotIn(READY, failed.stdout)
         self.assertTrue((self.state/"previous-runtime").is_dir())
         self.assertFalse((self.state/"complete.json").exists())
+
+    def test_32_character_password_is_rejected_before_launch(self):
+        config = json.loads(self.config.read_text())
+        config["ServerDescription_Persistent"]["Password"] = "x" * 32
+        self.config.write_text(json.dumps(config))
+        failed = self.run_egg()
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertIn(b"shorter than 32 characters", failed.stderr)
+        self.assertFalse((self.root/"boots").exists())
 
     def test_recovery_disabled_stops_before_game_launch(self):
         config = json.loads(self.config.read_text())
