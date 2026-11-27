@@ -28,9 +28,9 @@ PY
 mkdir -p "$root/R5/Saved"
 cp tests/server-description.json "$root/R5/ServerDescription.json"
 if [ "${WINDROSE_TEST_FETCH:-0}" = 1 ]; then
-    docker run --rm --user 0:0 --mount "type=bind,src=$root,dst=/mnt/server" \
-      --entrypoint /opt/windrose-runtime/python/bin/python3.12 "$image" \
-      -E -B /opt/windrose-first-run/install_publisher.py /mnt/server
+    docker run --rm --mount "type=bind,src=$root,dst=/mnt/server" \
+      --mount "type=bind,src=$PWD/install.sh,dst=/mnt/install/install.sh,readonly" \
+      "$image" bash /mnt/install/install.sh
 fi
 sudo chown -R 99:100 "$root"
 docker run --detach --name "$name" --network none --read-only --user 99:100 \

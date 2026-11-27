@@ -1,5 +1,10 @@
 #!/bin/sh
 set -eu
+if [ "$#" -eq 2 ] && [ "$1" = bash ] && [ "$2" = /mnt/install/install.sh ]; then
+    exec /bin/bash /mnt/install/install.sh
+fi
+test "$#" -eq 0
+test "$(id -u)" -ne 0
 cd /home/container
 test -s R5/ServerDescription.json
 mkdir -p R5/Saved
