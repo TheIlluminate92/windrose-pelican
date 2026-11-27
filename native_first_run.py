@@ -249,13 +249,16 @@ def bootstrap(name, preset, config):
         finally:
             code = stop_game(active)
             restore_access(original, temporary)
-    if interrupted or (
-        code != 0 and not (code in (139, -signal.SIGSEGV) and EXIT in console_tail(console))
-    ):
-        raise ValueError("Unexpected first-launch exit. The verified backup and runtime were preserved.")
+    exit_logged = any(
+        EXIT in content or b"LogLinux: FPlatformMisc::RequestExit" in content
+        for content in (console_tail(console), console_tail(GAME_LOG))
+    )
+    accepted_signal_exit = code in (130, 139, -signal.SIGINT, -signal.SIGSEGV) and exit_logged
+    if interrupted or (code != 0 and not accepted_signal_exit):
+        raise ValueError(f"Unexpected first-launch exit (code={code}, requested_exit_logged={exit_logged}). The verified backup and runtime were preserved.")
     if json_file(SERVER)[KEY].get("WorldIslandId") != world_id:
         raise ValueError("The verified first snapshot does not match the selected world after stop.")
-    print("Windrose first launch stopped after a validated snapshot.", flush=True)
+    print(f"Windrose first launch stopped after a validated snapshot (exit {code}).", flush=True)
     expected = cold_restore({"name": name, "preset": preset, "latest": latest}, world_id, archive)
     return reopen(world_id, expected)
 
