@@ -1,0 +1,21 @@
+{
+  "Version": 1,
+  "DeploymentId": "",
+  "ServerDescription_Persistent": {
+    "PersistentServerId": "",
+    "InviteCode": "",
+    "IsPasswordProtected": true,
+    "Password": "synthetic-ci-only",
+    "ServerName": "Windrose CI",
+    "WorldIslandId": "",
+    "MaxPlayerCount": 6,
+    "UserSelectedRegion": "",
+    "P2pProxyAddress": "0.0.0.0",
+    "UseDirectConnection": true,
+    "DirectConnectionServerAddress": "",
+    "DirectConnectionServerPort": 25562,
+    "DirectConnectionProxyAddress": "0.0.0.0",
+    "AutoLoadLatestBackupIfHasBroken": true,
+    "CanLaunchMultipleServerInstances": false
+  }
+}

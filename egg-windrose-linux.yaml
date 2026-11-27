@@ -1,0 +1,125 @@
+meta:
+  version: PLCN_v3
+  update_url: null
+name: Windrose (Native Linux, first-run setup)
+author: Pelican Windrose contributors
+uuid: 7f4b2062-1db5-4c7e-aa1a-6a087c7e1557
+description: Windrose publisher Linux. World Name and Difficulty apply together on the first start of a fresh world. Later starts preserve the world. Direct IP uses the primary allocation. A stop can exit 139 on this build.
+docker_images:
+  Windrose Native Linux: ~windrose-pelican:0.10.0.9-first-run
+tags: []
+features: []
+file_denylist: []
+startup_commands:
+  Default: /usr/local/bin/windrose-adapter
+config:
+  files:
+    R5/ServerDescription.json:
+      parser: json
+      find:
+        ServerDescription_Persistent.ServerName: '{{server.environment.SERVER_NAME}}'
+        ServerDescription_Persistent.IsPasswordProtected: '{{server.environment.IS_PASSWORD_PROTECTED}}'
+        ServerDescription_Persistent.Password: '{{server.environment.SERVER_PASSWORD}}'
+        ServerDescription_Persistent.MaxPlayerCount: '{{server.environment.MAX_PLAYERS}}'
+        ServerDescription_Persistent.DirectConnectionServerPort: '{{server.allocations.default.port}}'
+        ServerDescription_Persistent.UseDirectConnection: true
+        ServerDescription_Persistent.DirectConnectionProxyAddress: '{{server.environment.DIRECT_BIND_ADDRESS}}'
+        ServerDescription_Persistent.AutoLoadLatestBackupIfHasBroken: '{{server.environment.AUTO_LOAD_LATEST_BACKUP}}'
+  startup:
+    done: 'LogGlobalStatus: LoadMap Load map complete /Game/Maps/GYM/Genlandia/GenlandiaMulty'
+  logs: {}
+  stop: ^C
+scripts:
+  installation:
+    script: "#!/bin/bash\nset -e\nmkdir -p /mnt/server/R5/Saved\nconfig=/mnt/server/R5/ServerDescription.json\nif [ -L \"$config\" ]; then\n    echo 'Windrose server configuration must be a regular file.' >&2\n    exit 1\nfi\nif [ ! -f \"$config\" ]; then\n    umask 077\n    cat > \"$config\" <<'WINDROSE_CONFIG'\n{\n  \"Version\": 1,\n  \"DeploymentId\": \"\",\n  \"ServerDescription_Persistent\": {\n    \"PersistentServerId\": \"\",\n    \"InviteCode\": \"\",\n    \"IsPasswordProtected\": true,\n    \"Password\": \"\",\n    \"ServerName\": \"Windrose\",\n    \"WorldIslandId\": \"\",\n    \"MaxPlayerCount\": 4,\n    \"UserSelectedRegion\": \"\",\n    \"P2pProxyAddress\": \"0.0.0.0\",\n    \"UseDirectConnection\": true,\n    \"DirectConnectionServerAddress\": \"\",\n    \"DirectConnectionServerPort\": 25562,\n    \"DirectConnectionProxyAddress\": \"0.0.0.0\",\n    \"AutoLoadLatestBackupIfHasBroken\": true,\n    \"CanLaunchMultipleServerInstances\": false\n  }\n}\nWINDROSE_CONFIG\nfi\n"
+    entrypoint: bash
+    container: ghcr.io/parkervcp/installers:debian
+variables:
+- name: '[SERVER] Max Players'
+  description: Maximum simultaneous players allowed. Up to 4 is recommended for best performance; 10 players is supported with adequate hardware (>=16 GB RAM).
+  env_variable: MAX_PLAYERS
+  default_value: '4'
+  user_viewable: true
+  user_editable: true
+  rules:
+  - required
+  - integer
+  - min:1
+  - max:10
+  sort: 7
+- name: '[SERVER] Password Protected'
+  description: Set to true to require a password to join, false for open access.
+  env_variable: IS_PASSWORD_PROTECTED
+  default_value: 'true'
+  user_viewable: true
+  user_editable: true
+  rules:
+  - required
+  - string
+  - in:true,false
+  sort: 5
+- name: '[SERVER] Server Name'
+  description: The display name of your server shown to players in the browser.
+  env_variable: SERVER_NAME
+  default_value: Windrose
+  user_viewable: true
+  user_editable: true
+  rules:
+  - required
+  - string
+  - max:64
+  sort: 1
+- name: '[SERVER] Server Password'
+  description: Password required to join the server. Only used when Password Protected is set to true.
+  env_variable: SERVER_PASSWORD
+  default_value: ''
+  user_viewable: true
+  user_editable: true
+  rules:
+  - nullable
+  - string
+  - max:64
+  sort: 6
+- name: '[NETWORK] Direct Bind Address'
+  description: IPv4 address inside the game container. Keep 0.0.0.0 for normal Pelican port forwarding.
+  env_variable: DIRECT_BIND_ADDRESS
+  default_value: 0.0.0.0
+  user_viewable: true
+  user_editable: true
+  rules:
+  - required
+  - ipv4
+  sort: 4
+- name: '[WORLD] Recover From Latest Backup'
+  description: Allow Windrose to try its latest native backup if the selected save is damaged at startup.
+  env_variable: AUTO_LOAD_LATEST_BACKUP
+  default_value: 'true'
+  user_viewable: true
+  user_editable: true
+  rules:
+  - required
+  - string
+  - in:true,false
+  sort: 8
+- name: '[WORLD] World Name'
+  env_variable: WORLD_NAME
+  description: Set alongside World Difficulty before the first start. Existing worlds are unchanged.
+  default_value: ''
+  user_viewable: true
+  user_editable: true
+  rules:
+  - nullable
+  - string
+  - max:64
+  sort: 9
+- name: '[WORLD] World Difficulty'
+  env_variable: WORLD_PRESET_TYPE
+  description: Easy, Medium, or Hard. Leave both world settings empty to use Windrose defaults.
+  default_value: ''
+  user_viewable: true
+  user_editable: true
+  rules:
+  - nullable
+  - string
+  - in:Easy,Medium,Hard
+  sort: 10

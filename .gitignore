@@ -1,0 +1,4 @@
+/cpython-*.tar.gz
+/__pycache__/
+/tests/__pycache__/
+*.pyc

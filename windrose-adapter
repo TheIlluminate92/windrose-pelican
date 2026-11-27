@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+cd /home/container
+test -s R5/ServerDescription.json
+mkdir -p R5/Saved
+test ! -L .windrose-backup-tmp
+if [ ! -d .windrose-backup-tmp ]; then
+    mkdir -m 0700 .windrose-backup-tmp
+fi
+test "$(stat -c '%u:%a' .windrose-backup-tmp)" = "$(id -u):700"
+exec /opt/windrose-runtime/python/bin/python3.12 -E -B /opt/windrose-first-run/native_first_run.py
