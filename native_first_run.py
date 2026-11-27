@@ -180,6 +180,9 @@ def startup_lines(stream):
 
 def reopen(world_id, expected):
     global active
+    # Preserve the first boot's log so only the new process can supply readiness.
+    if GAME_LOG.exists():
+        checked_move(GAME_LOG, STATE / "first-game.log")
     active = subprocess.Popen([GAME], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     confirmed = False
     deadline = time.monotonic() + 180
@@ -187,8 +190,12 @@ def reopen(world_id, expected):
         for line in startup_lines(active.stdout):
             if interrupted and confirmed:
                 return stop_game(active)
-            if not confirmed and (time.monotonic() >= deadline or interrupted):
-                raise ValueError("Restored world did not verify before startup stopped or timed out.")
+            if not confirmed:
+                if time.monotonic() >= deadline or interrupted:
+                    raise ValueError("Restored world did not verify before startup stopped or timed out.")
+                if line is None:
+                    line = next((entry + b"\n" for entry in console_tail(GAME_LOG).splitlines()
+                                 if READY in entry), None)
             if line is None:
                 continue
             if not confirmed and READY in line:

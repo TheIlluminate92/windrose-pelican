@@ -58,7 +58,13 @@ if not runtime.is_dir():
     if os.environ.get("BAD_RESTORE"):
         document["WorldDescription"]["WorldName"] = "Fallback"
     (runtime/"WorldDescription.json").write_text(json.dumps(document))
-print(marker,flush=True)
+if os.environ.get("FILE_ONLY_RESTORE"):
+    log = Path("R5/Saved/Logs/R5.log")
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text(marker + "\n")
+    time.sleep(1.5)
+else:
+    print(marker,flush=True)
 '''
 RUNNER = """
 import sys
@@ -109,6 +115,12 @@ class FirstRun(unittest.TestCase):
         self.assertEqual(json.loads(initial)["WorldDescription"]["WorldPresetType"], "Hard")
         self.assertEqual(self.run_egg(WORLD_PRESET_TYPE="Easy").returncode, 0)
         self.assertEqual(self.world.read_bytes(), initial)
+
+    def test_second_boot_can_report_readiness_in_its_own_log(self):
+        finished = self.run_egg(FILE_ONLY_RESTORE="1")
+        self.assertEqual(finished.returncode, 0, finished.stderr)
+        self.assertLess(finished.stdout.index(b"settings verified"), finished.stdout.index(READY))
+        self.assertTrue((self.state/"complete.json").is_file())
 
     def test_unexpected_exit_holds(self):
         failed = self.run_egg(BAD_STOP="1")
