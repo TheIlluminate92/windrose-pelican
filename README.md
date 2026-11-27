@@ -29,6 +29,23 @@ The publisher build `0.10.0.9.32-22d39a16` can segfault after reaching its shutd
 
 Official references: [publisher's server guide](https://playwindrose.com/dedicated-server-guide), [publisher's Docker image](https://hub.docker.com/r/windroseserver/windroseserver), [Pelican egg docs](https://pelican.dev/docs/eggs/creating-a-custom-egg/).
 
+## Optional player counting for Panel admins
+
+The egg works without a telemetry plugin. This Linux build writes player
+lifecycle events to `R5/Saved/Logs/R5.log`. An optional Panel integration can
+read it through Wings and match successful logins to disconnects using the
+same controller identifier. Keep the identifiers in memory and expose only
+the total. Display unknown when the current boot's complete, recent history
+is unavailable or ambiguous. Treat the result as display telemetry and
+exclude it from empty-server automation.
+
+Single-player join and leave were observed on stock Linux. Concurrent joins,
+reconnects and rotation have synthetic coverage in our private Game Services
+candidate and still need live validation. The public egg requires neither
+that plugin nor changes to the runtime image.
+
+See [Pelican submission notes](PELICAN-SUBMISSION.md) for the upstream path.
+
 ## Attribution
 
 The egg builds on the [Pelican Windrose egg](https://github.com/pelican-eggs/games-steamcmd/pull/271) by nezorflame and contributors. The upstream MIT notice is included. Windrose and its game files remain the publisher's property.
